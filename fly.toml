@@ -1,0 +1,90 @@
+# Laravel Cloud / Fly.io Configuration for Klubby
+app = "klubby"
+primary_region = "lhr"  # London region for UK-based service
+console_command = "php /var/www/html/artisan tinker"
+
+[build]
+  [build.args]
+    NODE_VERSION = "20"
+    PHP_VERSION = "8.4"
+
+[env]
+  APP_NAME = "Klubby"
+  APP_ENV = "production"
+  APP_DEBUG = "false"
+  APP_URL = "https://klubby.co.uk"
+  
+  APP_LOCALE = "en"
+  APP_FALLBACK_LOCALE = "en"
+  APP_FAKER_LOCALE = "en_GB"
+  
+  LOG_CHANNEL = "stack"
+  LOG_LEVEL = "error"
+  
+  DB_CONNECTION = "pgsql"
+  
+  SESSION_DRIVER = "redis"
+  SESSION_LIFETIME = "120"
+  SESSION_ENCRYPT = "true"
+  
+  BROADCAST_CONNECTION = "redis"
+  FILESYSTEM_DISK = "s3"
+  QUEUE_CONNECTION = "redis"
+  CACHE_STORE = "redis"
+  
+  MAIL_MAILER = "ses"
+  MAIL_FROM_ADDRESS = "hello@klubby.co.uk"
+  MAIL_FROM_NAME = "Klubby"
+  
+  # Cashier Configuration
+  CASHIER_CURRENCY = "gbp"
+  CASHIER_CURRENCY_LOCALE = "en_GB"
+  STRIPE_WEBHOOK_TOLERANCE = "300"
+  
+  # UK-specific AWS Region
+  AWS_DEFAULT_REGION = "eu-west-2"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+  
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+  processes = ["app"]
+  
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    method = "get"
+    path = "/up"
+    protocol = "http"
+    timeout = "5s"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[processes]
+  app = ""
+  queue = "php artisan queue:work --tries=3 --max-jobs=500"
+  scheduler = "php artisan schedule:work"

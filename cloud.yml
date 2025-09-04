@@ -1,0 +1,73 @@
+# Laravel Cloud Configuration for Klubby
+name: klubby
+region: eu-west-2  # London region for UK users
+
+build:
+  php_version: 8.4
+  node_version: 20
+  
+database:
+  type: serverless-postgres
+  provider: neon  # Recommended serverless provider
+  region: eu-west-2
+  
+redis:
+  provider: upstash  # Serverless Redis
+  region: eu-west-2
+  
+storage:
+  driver: s3
+  region: eu-west-2
+  bucket: klubby-assets
+  
+mail:
+  driver: ses
+  region: eu-west-2
+  
+queue:
+  driver: redis
+  workers:
+    default: 2
+    payments: 3  # Higher priority for payment processing
+    notifications: 1
+    
+scheduler:
+  enabled: true
+  
+monitoring:
+  provider: sentry
+  sample_rate: 0.1  # Sample 10% of transactions
+  
+scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu: 70
+  target_memory: 80
+  
+  # Scale up during draw times (UK evenings/weekends)
+  schedules:
+    - name: draw_time
+      cron: "0 19-22 * * 5-6"  # Friday/Saturday 7pm-10pm UK
+      min_instances: 3
+      max_instances: 20
+      
+domains:
+  - klubby.co.uk
+  - www.klubby.co.uk
+  
+ssl:
+  provider: letsencrypt
+  auto_renew: true
+  
+environment:
+  production:
+    APP_ENV: production
+    APP_DEBUG: false
+    CASHIER_CURRENCY: gbp
+    CASHIER_CURRENCY_LOCALE: en_GB
+    
+  staging:
+    APP_ENV: staging
+    APP_DEBUG: true
+    CASHIER_CURRENCY: gbp
+    CASHIER_CURRENCY_LOCALE: en_GB

@@ -9,18 +9,39 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\PartnerRegisterController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    // Default register route - redirects to user registration
+    Route::get('register', function() {
+        return redirect()->route('user.register');
+    })->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // User Registration Routes
+    Route::get('register/user', function() {
+        return view('auth.user-register');
+    })->name('user.register');
 
+    Route::post('register/user', [RegisteredUserController::class, 'store'])
+        ->name('user.register.store');
+
+    // Partner Registration Routes
+    Route::get('register/partner', [PartnerRegisterController::class, 'create'])
+        ->name('partner.register');
+
+    Route::post('register/partner', [PartnerRegisterController::class, 'store'])
+        ->name('partner.register.store');
+
+    // Login Routes (unified login for both users and partners)
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    // Partner Login (separate endpoint if needed)
+    Route::post('login/partner', [AuthenticatedSessionController::class, 'store'])
+        ->name('partner.login');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
